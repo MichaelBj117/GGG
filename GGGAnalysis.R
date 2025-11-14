@@ -11,9 +11,20 @@ library(kknn)
 train_data <- vroom("GitHub/GGG/train.csv")
 test_data <- vroom("GitHub/GGG/test.csv")
 
+ggplot(data = train_data, aes(x = bone_length, y = hair_length)) +
+  geom_point()
+
 
 GGG_recipe <- recipe(type ~ . , data = train_data) %>% 
-  step_dummy(color)
+  step_dummy(color) %>% 
+  step_rm(id) %>% 
+  step_interact(~ has_soul:hair_length +
+                  has_soul:bone_length +
+                  has_soul:rotting_flesh +
+                  hair_length:bone_length +
+                  hair_length:rotting_flesh +
+                  bone_length:rotting_flesh) %>% 
+  step_normalize(all_predictors())
 
 prepped_recipe <- prep(GGG_recipe)
 baked_data <- bake(prepped_recipe, new_data=train_data)
@@ -53,4 +64,4 @@ kaggle_sub <- bind_cols(test_data$id, GGG_predictions[1]) %>%
   rename(id = ...1)
 
 vroom_write(kaggle_sub,
-            file="GitHub/GGG/KNN.csv", delim=",")
+            file="GitHub/GGG/KNN6.csv", delim=",")
